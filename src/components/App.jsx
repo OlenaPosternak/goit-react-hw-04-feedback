@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { FeedbackOptions } from './FeedbackOptions/FeedbackOptions';
 import { AppStyle } from './App.styled';
 import { Statistics } from './Statistics/Statistics';
@@ -7,58 +7,69 @@ import { Notification } from './Notification';
 
 import PropTypes from 'prop-types';
 
-export class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
-  };
+export default function App() {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
 
-  onLeaveFeedback = feedbackType => {
-    this.setState(prevState => {
-      return {
-        [feedbackType]: prevState[feedbackType] + 1,
-      };
-    });
-  };
+  const feedbackOptions = { good, neutral, bad };
 
-  countTotalFeedback = () => {
-    const { good, neutral, bad } = this.state;
-    return good + neutral + bad;
-  };
 
-  countPositiveFeedbackPercentage = () => {
-    const { good, neutral, bad } = this.state;
-    const total = good + neutral + bad;
-    const positevePercent = (good / total) * 100;
-    return Math.round(positevePercent);
-  };
 
-  render() {
-    return (
-      <AppStyle>
-        <Section title={'Please leave your feedback'}>
-          <FeedbackOptions
-            onLeaveFeedback={this.onLeaveFeedback}
-            options={Object.keys(this.state)}
-          ></FeedbackOptions>
-        </Section>
-
-        <Section title={'Statistics'}>
-          <Notification total={this.countTotalFeedback()}></Notification>
-
-          <Statistics
-            good={this.state.good}
-            neutral={this.state.neutral}
-            bad={this.state.bad}
-            total={this.countTotalFeedback()}
-            positivePercentage={this.countPositiveFeedbackPercentage()}
-          ></Statistics>
-        </Section>
-      </AppStyle>
-    );
+  function onLeaveFeedback(feedbackType) {
+    switch (feedbackType) {
+      case 'good':
+        setGood(prevState => prevState + 1);
+        break;
+      case 'neutral':
+        setNeutral(prevState => prevState + 1);
+        break;
+      case 'bad':
+        setBad(prevState => prevState + 1);
+        break;
+      default:
+        return;
+    }
   }
+
+function countTotalFeedback() {
+    const total = Object.values(feedbackOptions);
+    return total.reduce((a, b) =>{
+        return a + b;
+      });
+  }
+
+
+  function countPositiveFeedbackPercentage() {
+    const total = countTotalFeedback();
+    const positevePercent = (feedbackOptions.good / total) * 100;
+    return Math.round(positevePercent);
+  }
+
+  return (
+    <AppStyle>
+      <Section title={'Please leave your feedback'}>
+        <FeedbackOptions
+          onLeaveFeedback={onLeaveFeedback}
+          options={Object.keys(feedbackOptions)}
+        ></FeedbackOptions>
+      </Section>
+
+      <Section title={'Statistics'}>
+        <Notification total={countTotalFeedback()}></Notification>
+
+        <Statistics
+          good={good}
+          neutral={neutral}
+          bad={bad}
+          total={countTotalFeedback()}
+          positivePercentage={countPositiveFeedbackPercentage()}
+        ></Statistics>
+      </Section>
+    </AppStyle>
+  );
 }
+
 
 App.propType = {
   title: PropTypes.string,
